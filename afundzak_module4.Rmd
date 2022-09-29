@@ -1,0 +1,95 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# **Anthony Fundzak. Assignment 4 Quantitative Modeling**
+
+## Load and install library
+
+     install.packages(lpSolveAPI)
+     library(lpSolveAPI)
+
+## Making an lp object with 11 of constraints of the problem and 9 decision variables
+
+    lprec <- make.lp(11,9)
+
+## Creating objective function based off net profit of small, medium, large
+
+    set.objfn(lprec, c(300,360,420,300,360,420,300,360,420))
+
+## Change to maximum direction. Defaults at minimum.
+
+    lp.control(lprec,sense='max')
+
+## Constraints of the problem for square feet capabilities
+
+     add.constraint(lprec, c(20, 15, 12, 0, 0, 0, 0, 0, 0), "<=", 13000)
+     add.constraint(lprec, c(0, 0, 0, 20, 15, 12, 0, 0, 0), "<=", 12000)
+     add.constraint(lprec, c(0, 0, 0, 0, 0, 0, 20, 15, 12), "<=", 5000)
+
+## Constraints of the problem for units sold
+
+     add.constraint(lprec, c(1, 0, 0, 1, 0, 0, 1, 0, 0), "<=", 900)
+     add.constraint(lprec, c(0, 1, 0, 0, 1, 0, 0, 1, 0), "<=", 1200)
+     add.constraint(lprec, c(0, 0, 1, 0, 0, 1, 0, 0, 1), "<=", 750)
+
+## Constraints of the problem for capacity to produce
+
+     add.constraint(lprec, c(1, 1, 1, 0, 0, 0, 0, 0, 0), "<=", 750)
+     add.constraint(lprec, c(0, 0, 0, 1, 1, 1, 0, 0, 0), "<=", 900)
+     add.constraint(lprec, c(0, 0, 0, 0, 0, 0, 1, 1, 1), "<=", 450)
+
+## Constraint of management implementing excess capacity usage for layoffs. I first tried the bottom three and then when I got to the end I got all zeros back. I ended up changing the constraints to the next to as to better reflect the excess capacity.
+
+/add.constraint(lprec, c(-1/750, -1/750, -1/750, 1/900, 1/900, 1/900, 1/450, 1/450, 1/450), "\<=", 0) /add.constraint(lprec, c(1/750, 1/750, 1/750, -1/900, -1/900, -1/900, 1/450, 1/450, 1/450), "\<=", 0) /add.constraint(lprec, c(1/750, 1/750, 1/750, 1/900, 1/900, 1/900, -1/450, -1/450, -1/450), "\<=", 0)
+
+    add.constraint(lprec, c(1/750, 1/750, 1/750, 0, 0, 0, -1/450, -1/450, -1/450), "<=", 0) 
+    add.constraint(lprec, c(1/750, 1/750, 1/750, -1/900, -1/900, -1/900, 0, 0, 0), "<=", 0)
+
+## Set bounds
+
+    set.bounds(lprec, lower = c(0, 0, 0, 0, 0, 0, 0, 0, 0), columns = c(1, 2, 3, 4, 5, 6, 7, 8, 9))
+
+## Creating row and column names to make final table readable and function able. non-negativity required for dimnames to run.
+
+    Row_Names <- c("Plant_1_Squared_Footage", "Plant_2_Squared_Footage", "Plant_3_Squared_Footage","Plant_1_Units_Sold", "Plant_2_Units_Sold", "Plant_Units_Sold", "Plant_1_Production_Capacity", "Plant_2_Production_Capacity", "Plant_3_Production_Capacity", "Plant_1_Layoffs", "Plant_2_Layoffs", "Plant_3_Layoffs", "non-negativity", "non-negativity", "non-negativity", "non-negativity", "non-negativity", "non-negativity", "non-negativity", "non-negativity", "non-negativity", "non-negativity", "non-negativity")
+     Column_Names <- c("Plant_1_Small", "Plant_1_Medium", "Plant_1_Large", "Plant_2_Small", "Plant_2_Medium", "Plant_2_Large", "Plant_3_Small", "Plant_3_Medium", "Plant_3_Large")
+     dimnames(lprec) <- list(Row_Names, Column_Names)
+
+## Solving LP. Got back [1] 0
+
+    solve(lprec)
+
+## Output the value of the variables and objective function as well as the constraints
+
+    get.objective(lprec)
+     [1] 755333.3
+    get.variables(lprec)
+     [1]  27.77778 666.66667   0.00000   0.00000 533.33333 333.33333   0.00000   0.00000 416.66667
+    get.constraints(lprec)
+     [1]  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00
+     [9]  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  1.055556e+04  1.200000e+04  5.000000e+03  2.777778e+01    [17]  1.200000e+03  7.500000e+02  6.944444e+02  8.666667e+02  4.166667e+02 -3.703704e-02  0.000000e+00
+
+# Management wishes to know how much of each of the sizes should be produced by each of the plants to maximize profit. Below is the answer to that request from management.
+
+## Total Production Small units a day at Plant 1 = 27.77
+
+## Total Production Small units a day at Plant 2 = 0
+
+## Total Production Small units a day at Plant 3 = 0
+
+## Total Production Medium units a day at Plant 1 = 666.67
+
+## Total Production Medium units a day at Plant 2 = 533.34
+
+## Total Production Medium units a day at Plant 3 = 0
+
+## Total Production Large units a day at Plant 1 = 0
+
+## Total Production Large units a day at Plant 2 = 333.34
+
+## Total Production Large units a day at Plant 3 = 416.67
+
+## Max Profit = \$755,333
